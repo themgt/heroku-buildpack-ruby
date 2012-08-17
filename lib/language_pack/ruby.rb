@@ -113,10 +113,10 @@ private
       @ruby_version = run_stdout("env PATH=#{old_system_path}:#{bundler_path}/bin GEM_PATH=#{bundler_path} bundle platform --ruby").chomp
     end
 
-    if (@ruby_version == "No ruby version specified" || @ruby_version.empty?) && ENV['RUBY_VERSION']
+    if (@ruby_version == "No ruby version specified" || @ruby_version.empty?) && ENV['RUBY_VERSION'] ||= 'ruby-1.9.3'
       # for backwards compatibility.
       # this will go away in the future
-      @ruby_version = ENV['RUBY_VERSION'] ||= 'ruby-1.9.3'
+      @ruby_version = ENV['RUBY_VERSION']
       @ruby_version_env_var = true
     elsif @ruby_version == "No ruby version specified"
       @ruby_version = nil
