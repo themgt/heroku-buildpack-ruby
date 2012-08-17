@@ -7,7 +7,7 @@ Encoding.default_external = Encoding::UTF_8 if defined?(Encoding)
 
 # abstract class that all the Ruby based Language Packs inherit from
 class LanguagePack::Base
-  VENDOR_URL = "https://s3.amazonaws.com/heroku-buildpack-ruby"
+  VENDOR_URL = ENV['VENDOR_URL'] || "https://s3.amazonaws.com/heroku-buildpack-ruby"
 
   attr_reader :build_path, :cache_path
 
@@ -97,6 +97,7 @@ private ##################################
   end
 
   def add_to_profiled(string)
+    #puts "adding #{string} to profiled"
     FileUtils.mkdir_p "#{build_path}/.profile.d"
     File.open("#{build_path}/.profile.d/ruby.sh", "a") do |file|
       file.puts string
@@ -143,6 +144,7 @@ private ##################################
   # @param [String] command to be run
   # @return [String] output of stdout and stderr
   def run(command)
+    #puts "-> run #{command}"
     %x{ #{command} 2>&1 }
   end
 
@@ -150,12 +152,14 @@ private ##################################
   # @param [String] command to be run
   # @return [String] output of stdout
   def run_stdout(command)
+    #puts "-> stdout #{command}"
     %x{ #{command} 2>/dev/null }
   end
 
   # run a shell command and stream the ouput
   # @param [String] command to be run
   def pipe(command)
+    #puts "-> pipe #{command}"
     output = ""
     IO.popen(command) do |io|
       until io.eof?

@@ -9,7 +9,7 @@ class LanguagePack::Ruby < LanguagePack::Base
   LIBYAML_PATH        = "libyaml-#{LIBYAML_VERSION}"
   BUNDLER_VERSION     = "1.2.0.rc.2"
   BUNDLER_GEM_PATH    = "bundler-#{BUNDLER_VERSION}"
-  NODE_VERSION        = "0.4.7"
+  NODE_VERSION        = "0.8.7"
   NODE_JS_BINARY_PATH = "node-#{NODE_VERSION}"
   JVM_BASE_URL        = "http://heroku-jvm-langpack-java.s3.amazonaws.com"
   JVM_VERSION         = "openjdk7-latest"
@@ -72,13 +72,16 @@ private
   # the relative path to the bundler directory of gems
   # @return [String] resulting path
   def slug_vendor_base
-    if @slug_vendor_base
-      @slug_vendor_base
-    elsif @ruby_version == "ruby-1.8.7"
-      @slug_vendor_base = "vendor/bundle/1.8"
-    else
-      @slug_vendor_base = run(%q(ruby -e "require 'rbconfig';puts \"vendor/bundle/#{RUBY_ENGINE}/#{RbConfig::CONFIG['ruby_version']}\"")).chomp
+    @slug_vendor_base ||= begin
+      if @ruby_version == "ruby-1.8.7"
+        "vendor/bundle/1.8"
+      else
+        run(%q(ruby -e "require 'rbconfig';puts \"vendor/bundle/#{RUBY_ENGINE}/#{RbConfig::CONFIG['ruby_version']}\"")).chomp
+      end
     end
+    
+    puts "slb: #{@slug_vendor_base}"
+    @slug_vendor_base
   end
 
   # the relative path to the vendored ruby directory
@@ -111,7 +114,7 @@ private
       @ruby_version = run_stdout("env PATH=#{old_system_path}:#{bundler_path}/bin GEM_PATH=#{bundler_path} bundle platform --ruby").chomp
     end
 
-    if @ruby_version == "No ruby version specified" && ENV['RUBY_VERSION']
+    if (@ruby_version == "No ruby version specified" || @ruby_version.empty?) && ENV['RUBY_VERSION']
       # for backwards compatibility.
       # this will go away in the future
       @ruby_version = ENV['RUBY_VERSION']
@@ -427,6 +430,7 @@ ERROR
   # RUBYOPT line that requires syck_hack file
   # @return [String] require string if needed or else an empty string
   def syck_hack
+    return ""
     syck_hack_file = File.expand_path(File.join(File.dirname(__FILE__), "../../vendor/syck_hack"))
     ruby_version   = run('ruby -e "puts RUBY_VERSION"').chomp
     # < 1.9.3 includes syck, so we need to use the syck hack
