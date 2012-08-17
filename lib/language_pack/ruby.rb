@@ -80,7 +80,6 @@ private
       end
     end
     
-    puts "slb: #{@slug_vendor_base}"
     @slug_vendor_base
   end
 
